@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Practice | GET | POST | DELETE | EDIT | UPDATE (PUT)</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+      table {
+        width: 100%;
+        border-collapse: collapse; /* Cleaner border styles */
+        text-align: center; /* Centers text and images */
+      }
+      th,
+      td,
+      tr {
+        border: 1px solid black;
+        vertical-align: middle; /* Centers content inside cells */
+      }
+
+      /* also padding not working */
+      th {
+        background-color: red !important;
+      }
+      img {
+        width: 70px; /* Adjust the size */
+        height: auto;
+        display: block;
+        margin: auto; /* Centers the image */
+      }
+    </style>
+  </head>
+  <body>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Title</th>
+          <th>Price</th>
+          <th>Category</th>
+          <th>Image</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="data-body">
+        <!-- Dynamic rows will be added here by JavaScript -->
+        <tr>
+          <td><input id="id" hidden type="text" /></td>
+          <td><input id="title" type="text" /></td>
+          <td><input id="price" type="text" /></td>
+          <td><input id="category" type="text" /></td>
+          <td><input id="image" /></td>
+          <td>
+            <button
+              class="btn btn-success"
+              onclick='document.getElementById("btn").innerHTML.trim() === "Add" ? addData() : updateData()'
+              id="btn"
+            >
+              Add
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Modal -->
+    <div
+      class="modal fade"
+      id="deleteModal"
+      tabindex="-1"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Delete Data</h1>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">Are you sure you want to delete data?</div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-bs-dismiss="modal"
+              onclick="deleteData()"
+            >
+              OK
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      //-----------------------GetData-------------------------------------------------------
+      const getData = () => {
+        try {
+          fetch("https://fakestoreapi.com/products")
+            .then((res) => res.json())
+            .then((res) => {
+              const tableBody = document.getElementById("data-body");
+              for (let x of res) {
+                const row = `
+                          <tr>
+                              <td>${x.id}</td>
+                              <td>${x.title}</td>
+                              <td>${x.price}</td>
+                              <td>${x.category}</td>
+                              <td><img src='${x.image}' /></td>
+                              <td><button onclick='editData(${x.id})' class="btn btn-warning">Edit</button> <br> <br> <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" onclick='getId(${x.id})'>Delete</button> </td>
+                          </tr>`;
+                tableBody.innerHTML += row;
+              }
+            });
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      getData();
+      //   --------------------------Add Data------------------------------------------------------------
+
+      const addData = () => {
+        try {
+          let a = document.getElementById("id").value;
+          let b = document.getElementById("title").value;
+          let c = document.getElementById("price").value;
+          let d = document.getElementById("category").value;
+          let e = document.getElementById("image").value;
+
+          fetch("https://fakestoreapi.com/products", {
+            method: "POST",
+            body: JSON.stringify({
+              id: a,
+              title: b,
+              price: c,
+              category: d,
+              image: e,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+            .then((res) => {
+              return res.json();
+            })
+            .then((res) => {
+              console.log(res);
+            })
+
+            .then((res) => {
+              document.getElementById("id").value = "";
+              document.getElementById("title").value = "";
+              document.getElementById("price").value = "";
+              document.getElementById("category").value = "";
+              document.getElementById("image").value = "";
+            });
+        } catch (err) {
+          console.log(err);
+        }
+      };
+      //--------------------Edit Data----------------------------------------------------
+      const editData = (id) => {
+        fetch(`https://fakestoreapi.com/products/${id}`)
+          .then((res) => {
+            return res.json();
+          })
+          .then((res) => {
+            console.log(res);
+            document.getElementById("id").value = res.id;
+            document.getElementById("title").value = res.title;
+            document.getElementById("price").value = res.price;
+            document.getElementById("category").value = res.category;
+            document.getElementById("image").value = res.image;
+            document.getElementById("btn").innerHTML = "Update";
+          });
+      };
+      //----------------------update data------------------------------------------
+      const updateData = () => {
+        try {
+          let a = document.getElementById("id").value;
+          let b = document.getElementById("title").value;
+          let c = document.getElementById("price").value;
+          let d = document.getElementById("category").value;
+          let e = document.getElementById("image").value;
+          document.getElementById("btn").style.backgroundColor = "orange";
+
+          fetch(`https://fakestoreapi.com/products/${a}`, {
+            method: "PUT",
+            body: JSON.stringify({
+              title: b,
+              price: c,
+              category: d,
+              image: e,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+            .then((res) => {
+              return res.json();
+            })
+            .then((res) => {
+              console.log(res);
+            });
+        } catch (err) {
+          console.log(err);
+        }
+      };
+      //-------------------Deleat Data------------------------------------------
+
+      const getId = (id) => {
+        try {
+          fetch(`https://fakestoreapi.com/products/${id}`)
+            .then((res) => {
+              return res.json();
+            })
+            .then((res) => {
+              document.getElementById("id").value = res.id;
+            });
+        } catch (err) {
+          console.log(err);
+        }
+      };
+
+      const deleteData = () => {
+        let id = document.getElementById("id").value;
+        try {
+          fetch(`https://fakestoreapi.com/products/${id}`, {
+            method: "DELETE",
+          })
+            .then((res) => {
+              return res.json();
+            })
+            .then((res) => {
+              console.log(`Deleted item with ID: ${id}`, res);
+            });
+        } catch (err) {
+          console.log(err);
+        }
+      };
+    </script>
+  </body>
+</html>
